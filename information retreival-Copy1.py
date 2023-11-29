@@ -3,17 +3,15 @@ import json
 import math
 import os
 import time
+import webbrowser
 import requests
-from bs4 import BeautifulSoup
-import nltk
-from nltk. tokenize import RegexpTokenizer
-import schedule
+import urllib.parse
 import urllib.robotparser
 import tkinter as tk
 from tkinter import scrolledtext
-import webbrowser
-
-tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+from bs4 import BeautifulSoup
+from nltk.tokenize import RegexpTokenizer
+import nltk
 
 ########### Define Stopwords #################
 import requests
@@ -109,7 +107,6 @@ def calculate_tfidf(documents, inverted_index):
             # Find out max word count in a record
             max_frequency = max(document_tokens.count(w) for w in document_tokens)
 
-            # For each record, we store the tfidf for each term in another dict
             tfidf_scores[document_id] = {}
 
             for token in document_tokens:
@@ -125,7 +122,7 @@ def rank_documents(query, documents, inverted_index, tfidf_scores):
     # Preprocess user query
     query_tokens = preprocess_text(query)
 
-    # Compute the score based on tfidf
+
     scores = {}
     for token in query_tokens:
         if token in inverted_index:
@@ -135,7 +132,6 @@ def rank_documents(query, documents, inverted_index, tfidf_scores):
                 else:
                     scores[document_id] = tfidf_scores[document_id][token]
 
-    # Return the sorted (descending) list of scores
     return sorted(scores, key=scores.get, reverse=True)
 
 def can_fetch_url(url, user_agent='*'):
@@ -269,7 +265,7 @@ def search_engine_gui(documents, inverted_index, tfidf_scores):
     root = tk.Tk()
     root.title("Document Search")
 
-    # Create and pack the label, entry, button, and text widgets
+    # widgets
     label = tk.Label(root, text="Enter your query:")
     label.pack()
 
@@ -285,7 +281,7 @@ def search_engine_gui(documents, inverted_index, tfidf_scores):
     # Dictionary to store URLs for links
     urls = {}
 
-    # Start the GUI event loop
+    # Launch GUI
     root.mainloop()
 
 # Store crawled data in JSON FILE
@@ -305,7 +301,7 @@ def search_and_display_results():
     # File to store crawled publication data
     json_filename = "publications.json"
 
-    # Check if the JSON file exists
+    # verify json file
     if os.path.exists(json_filename) and os.path.isfile(json_filename):
         # If it exists, load data into the publications list
         with open(json_filename, "r") as json_file:
@@ -346,7 +342,7 @@ if __name__ == "__main__":
     # Define the JSON filename
     json_filename = "publications.json"
 
-    # Check if the JSON file exists
+    # verify json
     if os.path.exists(json_filename) and os.path.isfile(json_filename):
         # Load data from the JSON file
         with open(json_filename, "r") as json_file:
