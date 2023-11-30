@@ -64,9 +64,9 @@ def stem_words(tokens):
 ############ inverted index ###################
 def create_inverted_index(documents):
 
-    inverted_index = {} # Inverted index dictionary
+    inverted_index = {} 
 
-    document_id = 0 # Unique document ID for each record
+    document_id = 0
 
     for document in documents:
         for record in document:
@@ -75,7 +75,6 @@ def create_inverted_index(documents):
             preprocessed_title = preprocess_text(record['title']) # Preprocess the crawled data
             preprocessed_journal = preprocess_text(record['journal'])
 
-            # Build inverted index
             for token in preprocessed_title + preprocessed_journal:
                 if token in inverted_index:
                     inverted_index[token].append(document_id)
@@ -184,7 +183,7 @@ def crawl_publications(url):
             numberofpages = ""
         article_id = publication.find("p", class_="type").text.split()[-1]
 
-        # Build a dict storing all info and append it to info list
+        # dictionary represents the information about a publication
         publication_info = {
             "title": title,
             "publication_link": publication_link,
@@ -217,19 +216,9 @@ def search_engine_gui(documents, inverted_index, tfidf_scores):
     root = tk.Tk()
     root.title("Search Engine")
 
-    def open_url_on_click(event):
-        # Get the index of the clicked position in the text widget
-        clicked_index = result_text.index("@%d,%d" % (event.x, event.y))
-
-        # Find the tag name associated with the clicked position
-        clicked_tag = result_text.tag_names(clicked_index)[0]
-
-        # Get the URL associated with the tag name from a dictionary
-        url = url_mapping.get(clicked_tag)
-
-        # Open the URL in a web browser if it exists
-        if url:
-            webbrowser.open(url)
+    # Function to open the URL in a web browser
+    def open_url(url):
+        webbrowser.open(url)
 
     # Function to perform the search
     def perform_search():
@@ -242,28 +231,25 @@ def search_engine_gui(documents, inverted_index, tfidf_scores):
 
             if doc_info:
                 result_text.insert(tk.END, f"Document ID: {doc_id}\nTitle: {doc_info['title']}\n")
-                
+
                 # Insert publication link with clickable functionality
                 link = doc_info['publication_link']
-                result_text.insert(tk.END, f"Publication Link: {link}\n\n", f"link{doc_id}")
-                urls[f"link{doc_id}"] = link
-                result_text.tag_bind(f"link{doc_id}", "<Button-1>", open_url_on_click)
-                result_text.tag_config(f"link{doc_id}", foreground="blue", underline=1)
+                tag_name = f"link{doc_id}"
+                result_text.insert(tk.END, f"Publication Link: {link}\n\n", tag_name)
+                url_mapping[tag_name] = link
+                result_text.tag_config(tag_name, foreground="blue", underline=1)
+                result_text.tag_bind(tag_name, "<Button-1>", lambda event, url=link: open_url(url))
 
             # Display authors and their profile links
             for i, (author, author_link) in enumerate(zip(doc_info['authors'], doc_info['authors_profiles'])):
-                author_link_tag = f"author_link{doc_id}_{i}"
+                tag_name = f"author_link{doc_id}_{i}"
                 result_text.insert(tk.END, f"Author: {author}, Profile Link: ", "author_label")
-                result_text.insert(tk.END, f"{author_link}\n", author_link_tag)
-                urls[author_link_tag] = author_link
-                result_text.tag_bind(author_link_tag, "<Button-1>", open_url_on_click)
-                result_text.tag_config(author_link_tag, foreground="green", underline=1)
+                result_text.insert(tk.END, f"{author_link}\n", tag_name)
+                url_mapping[tag_name] = author_link
+                result_text.tag_bind(tag_name, "<Button-1>", lambda event, url=author_link: open_url(url))
+                result_text.tag_config(tag_name, foreground="green", underline=1)
 
             result_text.insert(tk.END, "\n")
-
-    # Create the main window
-    root = tk.Tk()
-    root.title("Document Search")
 
     # widgets
     label = tk.Label(root, text="Enter your query:")
@@ -278,16 +264,13 @@ def search_engine_gui(documents, inverted_index, tfidf_scores):
     result_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=100, height=50)
     result_text.pack()
 
-    # Dictionary to store URLs for links
-    urls = {}
-
     # Launch GUI
     root.mainloop()
 
 # Store crawled data in JSON FILE
 def crawl_publications_and_save(json_filename):
     publications = []
-    for page_number in range(9):
+    for page_number in range(10):
         url = crawl_publications(f"https://pureportal.coventry.ac.uk/en/organisations/ics-research-centre-for-fluid-and-complex-systems-fcs/publications/?page={page_number}")
         publications.append(url)
 
